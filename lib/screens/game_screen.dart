@@ -16,12 +16,10 @@ class Obstacle {
 
 class GameScreen extends StatefulWidget {
   final String difficulty;
-  final String map;
 
   const GameScreen({
     super.key,
     required this.difficulty,
-    required this.map,
   });
 
   @override
@@ -49,6 +47,38 @@ class _GameScreenState extends State<GameScreen>
   // Game parameters
   double obstacleSpawnRate = 0.02; // probability per frame
   double obstacleSize = 40.0;
+
+  // Lane dash animation
+  List<double> laneDashOffsets = List.filled(4, 0.0);
+  final double dashLength = 24.0;
+  final double dashGap = 24.0;
+  final double dashWidth = 6.0;
+
+  LaneTheme get _laneTheme {
+    switch (widget.difficulty) {
+      case 'Medium':
+        return LaneTheme(
+          backgroundColor: const Color(0xFF001F3F),
+          laneColors: [const Color(0xFF003366), const Color(0xFF004080)],
+          dividerColor: const Color(0xFF00CFFF),
+          dashColor: const Color(0xFFFFFF00),
+        );
+      case 'Hard':
+        return LaneTheme(
+          backgroundColor: const Color(0xFF1A0029),
+          laneColors: [const Color(0xFF330044), const Color(0xFF260033)],
+          dividerColor: const Color(0xFFFF66CC),
+          dashColor: const Color(0xFFFFB3F5),
+        );
+      default:
+        return LaneTheme(
+          backgroundColor: Colors.grey.shade900,
+          laneColors: [Colors.grey.shade800, Colors.grey.shade700],
+          dividerColor: Colors.grey.shade600,
+          dashColor: Colors.yellow.shade400,
+        );
+    }
+  }
   
   // Get base speed and max speed based on difficulty
   double get _baseSpeed {
@@ -231,6 +261,12 @@ class _GameScreenState extends State<GameScreen>
         obstacle.y += obstacleSpeed;
       });
 
+      // Move lane dash offsets
+      laneDashOffsets = laneDashOffsets
+          .map((offset) =>
+              (offset + obstacleSpeed) % (dashLength + dashGap))
+          .toList();
+
       // Count and remove obstacles that made it to the bottom (increment score)
       final int obstaclesPassed = obstacles.where((obstacle) => obstacle.y > screenHeight).length;
       score += obstaclesPassed;
@@ -303,6 +339,7 @@ class _GameScreenState extends State<GameScreen>
       isGameOver = false;
       isPaused = false;
       score = 0;
+      laneDashOffsets = List.filled(4, 0.0);
     });
   }
 
@@ -347,9 +384,7 @@ class _GameScreenState extends State<GameScreen>
         behavior: HitTestBehavior.opaque,
         onPointerDown: _onPointerDown,
         child: Container(
-          decoration: BoxDecoration(
-            color: Colors.grey.shade900,
-          ),
+          color: _laneTheme.backgroundColor,
           child: LayoutBuilder(
             builder: (context, constraints) {
               // Update screen dimensions
@@ -360,25 +395,20 @@ class _GameScreenState extends State<GameScreen>
               
               return Stack(
                 children: [
-                  // Draw 4 lanes with dividers
-                  Row(
-                    children: List.generate(4, (index) {
-                      return Container(
-                        width: laneWidth,
-                        height: screenHeight,
-                        decoration: BoxDecoration(
-                          color: index % 2 == 0
-                              ? Colors.grey.shade800
-                              : Colors.grey.shade700,
-                          border: Border(
-                            right: BorderSide(
-                              color: Colors.grey.shade600,
-                              width: 2,
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
+                  // Draw lanes and animated dashed dividers
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: LaneBackgroundPainter(
+                        laneCount: 4,
+                        dashOffsets: laneDashOffsets,
+                        dashLength: dashLength,
+                        dashGap: dashGap,
+                        dashWidth: dashWidth,
+                        backgroundColors: _laneTheme.laneColors,
+                        dividerColor: _laneTheme.dividerColor,
+                        dashColor: _laneTheme.dashColor,
+                      ),
+                    ),
                   ),
                   // Draw obstacles (triangles)
                   ...obstacles.map((obstacle) {
@@ -508,5 +538,82 @@ class TrianglePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class LaneBackgroundPainter extends CustomPainter {
+  final int laneCount;
+  final List<double> dashOffsets;
+  final double dashLength;
+  final double dashGap;
+  final double dashWidth;
+  final List<Color> backgroundColors;
+  final Color dividerColor;
+  final Color dashColor;
+
+  LaneBackgroundPainter({
+    required this.laneCount,
+    required this.dashOffsets,
+    required this.dashLength,
+    required this.dashGap,
+    required this.dashWidth,
+    required this.backgroundColors,
+    required this.dividerColor,
+    required this.dashColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final laneWidth = size.width / laneCount;
+    final dividerPaint = Paint()
+      ..color = dividerColor
+      ..strokeWidth = 2;
+    final dashPaint = Paint()..color = dashColor;
+
+    for (int i = 0; i < laneCount; i++) {
+      final lanePaint = Paint()
+        ..color = backgroundColors[i % backgroundColors.length];
+      final laneRect =
+          Rect.fromLTWH(i * laneWidth, 0, laneWidth, size.height);
+      canvas.drawRect(laneRect, lanePaint);
+
+      if (i < laneCount - 1) {
+        final dx = (i + 1) * laneWidth;
+        canvas.drawLine(Offset(dx, 0), Offset(dx, size.height), dividerPaint);
+      }
+
+      final centerX = i * laneWidth + laneWidth / 2;
+      final dashOffset = dashOffsets.length > i ? dashOffsets[i] : 0.0;
+      double y = -dashLength + dashOffset;
+      while (y < size.height) {
+        final dashRect = Rect.fromLTWH(
+          centerX - dashWidth / 2,
+          y,
+          dashWidth,
+          dashLength,
+        );
+        canvas.drawRect(dashRect, dashPaint);
+        y += dashLength + dashGap;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant LaneBackgroundPainter oldDelegate) {
+    return oldDelegate.dashOffsets != dashOffsets;
+  }
+}
+
+class LaneTheme {
+  final Color backgroundColor;
+  final List<Color> laneColors;
+  final Color dividerColor;
+  final Color dashColor;
+
+  const LaneTheme({
+    required this.backgroundColor,
+    required this.laneColors,
+    required this.dividerColor,
+    required this.dashColor,
+  });
 }
 
