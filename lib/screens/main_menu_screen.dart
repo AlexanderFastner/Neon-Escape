@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'game_setup_screen.dart';
+import 'high_scores_screen.dart';
 
 class MainMenuScreen extends StatelessWidget {
   const MainMenuScreen({super.key});
@@ -53,6 +54,31 @@ class MainMenuScreen extends StatelessWidget {
                   ),
                 ),
                 child: const Text('Play'),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const HighScoresScreen(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  side: const BorderSide(color: Colors.white, width: 2),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 50,
+                    vertical: 18,
+                  ),
+                  textStyle: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                child: const Text('High Scores'),
               ),
             ],
           ),

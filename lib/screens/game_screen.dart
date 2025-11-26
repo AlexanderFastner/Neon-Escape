@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../services/high_score_service.dart';
 import 'game_over_screen.dart';
 
 class Obstacle {
@@ -39,6 +40,7 @@ class _GameScreenState extends State<GameScreen>
   int score = 0;
   late AnimationController _animationController;
   final Random _random = Random();
+  final HighScoreService _highScoreService = HighScoreService.instance;
   
   // Screen dimensions (updated in build)
   double screenWidth = 0;
@@ -311,10 +313,11 @@ class _GameScreenState extends State<GameScreen>
     }
   }
 
-  void _endGame() {
+  Future<void> _endGame() async {
     setState(() {
       isGameOver = true;
     });
+    await _highScoreService.recordScore(widget.difficulty, score);
     _showGameOverDialog();
   }
 
@@ -369,17 +372,6 @@ class _GameScreenState extends State<GameScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('TwoCars'),
-        backgroundColor: Colors.blue.shade900,
-        foregroundColor: Colors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-      ),
       body: Listener(
         behavior: HitTestBehavior.opaque,
         onPointerDown: _onPointerDown,
@@ -390,6 +382,7 @@ class _GameScreenState extends State<GameScreen>
               // Update screen dimensions
               screenWidth = constraints.maxWidth;
               screenHeight = constraints.maxHeight;
+              final double safeTop = MediaQuery.of(context).padding.top;
               
               final double laneWidth = constraints.maxWidth / 4;
               
@@ -473,7 +466,7 @@ class _GameScreenState extends State<GameScreen>
                   ),
                   // Score display (top center)
                   Positioned(
-                    top: 20,
+                    top: safeTop + 16,
                     left: 0,
                     right: 0,
                     child: Center(
@@ -494,6 +487,26 @@ class _GameScreenState extends State<GameScreen>
                             color: Colors.white,
                           ),
                         ),
+                      ),
+                    ),
+                  ),
+                  // Back button
+                  Positioned(
+                    top: safeTop + 12,
+                    left: 16,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
                       ),
                     ),
                   ),
