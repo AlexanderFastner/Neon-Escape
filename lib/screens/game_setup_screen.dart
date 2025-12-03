@@ -15,7 +15,7 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
 
   final List<String> difficulties = ['Easy', 'Medium', 'Hard'];
   final ThemeService _themeService = ThemeService.instance;
-  String _themeId = AppThemeIds.neoTokyoSkyline;
+  String _themeId = AppThemeIds.cyberRoad;
 
   @override
   void initState() {

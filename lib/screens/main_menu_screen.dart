@@ -14,7 +14,7 @@ class MainMenuScreen extends StatefulWidget {
 
 class _MainMenuScreenState extends State<MainMenuScreen> {
   final ThemeService _themeService = ThemeService.instance;
-  String _themeId = AppThemeIds.neoTokyoSkyline;
+  String _themeId = AppThemeIds.cyberRoad;
 
   @override
   void initState() {

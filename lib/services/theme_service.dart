@@ -16,9 +16,9 @@ class ThemeService {
   Future<String> getCurrentThemeId() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      return prefs.getString(_storageKey) ?? AppThemeIds.neoTokyoSkyline;
+      return prefs.getString(_storageKey) ?? AppThemeIds.cyberRoad;
     } on MissingPluginException {
-      return AppThemeIds.neoTokyoSkyline;
+      return AppThemeIds.cyberRoad;
     }
   }
 

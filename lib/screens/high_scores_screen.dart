@@ -18,7 +18,7 @@ class _HighScoresScreenState extends State<HighScoresScreen>
   final Map<String, List<int>> _scores = {};
   bool _isLoading = true;
   final ThemeService _themeService = ThemeService.instance;
-  String _themeId = AppThemeIds.neoTokyoSkyline;
+  String _themeId = AppThemeIds.cyberRoad;
 
   @override
   void initState() {

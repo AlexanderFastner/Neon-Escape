@@ -12,7 +12,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  String _selectedThemeId = AppThemeIds.neoTokyoSkyline;
+  String _selectedThemeId = AppThemeIds.cyberRoad;
   final ThemeService _themeService = ThemeService.instance;
   final SettingsService _settingsService = SettingsService.instance;
   bool _isLoading = true;
