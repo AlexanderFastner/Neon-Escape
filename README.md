@@ -49,7 +49,7 @@ flutter pub get
 List all available devices (emulators, simulators, or physical devices):
 
 ```bash
-flutter devices
+r
 flutter emulators
 ```
 

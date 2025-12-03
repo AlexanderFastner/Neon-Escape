@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/theme_service.dart';
+import '../services/settings_service.dart';
 import '../widgets/themed_background.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -13,7 +14,9 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   String _selectedThemeId = AppThemeIds.neoTokyoSkyline;
   final ThemeService _themeService = ThemeService.instance;
+  final SettingsService _settingsService = SettingsService.instance;
   bool _isLoading = true;
+  bool _forceVerticalAspectRatio = false;
 
   @override
   void initState() {
@@ -23,8 +26,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _loadTheme() async {
     final themeId = await _themeService.getCurrentThemeId();
+    final forceAspectRatio = await _settingsService.getForceVerticalAspectRatio();
     setState(() {
       _selectedThemeId = themeId;
+      _forceVerticalAspectRatio = forceAspectRatio;
       _isLoading = false;
     });
   }
@@ -35,6 +40,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _selectedThemeId = newThemeId;
     });
     await _themeService.setCurrentThemeId(newThemeId);
+  }
+
+  Future<void> _onAspectRatioChanged(bool? value) async {
+    if (value == null) return;
+    setState(() {
+      _forceVerticalAspectRatio = value;
+    });
+    await _settingsService.setForceVerticalAspectRatio(value);
   }
 
   @override
@@ -127,6 +140,50 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         title: 'Cyber Road',
                         subtitle:
                             'Curved neon road with northern lights and cityscape',
+                      ),
+                      const SizedBox(height: 32),
+                      ShaderMask(
+                        shaderCallback: (Rect bounds) {
+                          return const LinearGradient(
+                            colors: [
+                              Color(0xFFFF00A8),
+                              Color(0xFFFFA800),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ).createShader(bounds);
+                        },
+                        child: const Text(
+                          'Display',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Card(
+                        color: Colors.black.withOpacity(0.3),
+                        margin: const EdgeInsets.only(bottom: 12),
+                        child: SwitchListTile(
+                          value: _forceVerticalAspectRatio,
+                          onChanged: _onAspectRatioChanged,
+                          activeColor: Colors.orangeAccent,
+                          title: const Text(
+                            'Force Vertical Aspect Ratio',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          subtitle: const Text(
+                            'Maintains vertical aspect ratio in browser (adds black bars on sides)',
+                            style: TextStyle(
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),

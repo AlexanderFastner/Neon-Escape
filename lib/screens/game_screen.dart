@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../services/high_score_service.dart';
 import 'game_over_screen.dart';
 
@@ -422,13 +423,36 @@ class _GameScreenState extends State<GameScreen>
     });
   }
 
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (isGameOver) return KeyEventResult.ignored;
+    if (event is KeyDownEvent) {
+      setState(() {
+        // A key or Left arrow - control left car
+        if (event.logicalKey == LogicalKeyboardKey.keyA ||
+            event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+          leftCarLane = leftCarLane == 0 ? 1 : 0;
+        }
+        // D key or Right arrow - control right car
+        else if (event.logicalKey == LogicalKeyboardKey.keyD ||
+            event.logicalKey == LogicalKeyboardKey.arrowRight) {
+          rightCarLane = rightCarLane == 2 ? 3 : 2;
+        }
+      });
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Listener(
-        behavior: HitTestBehavior.opaque,
-        onPointerDown: _onPointerDown,
-        child: Container(
+      body: Focus(
+        autofocus: true,
+        onKeyEvent: _handleKeyEvent,
+        child: Listener(
+          behavior: HitTestBehavior.opaque,
+          onPointerDown: _onPointerDown,
+          child: Container(
           color: _laneTheme.backgroundColor,
           child: LayoutBuilder(
             builder: (context, constraints) {
@@ -612,6 +636,7 @@ class _GameScreenState extends State<GameScreen>
           ),
         ),
       ),
+        ),
     );
   }
 }

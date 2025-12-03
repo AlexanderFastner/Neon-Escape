@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'screens/main_menu_screen.dart';
+import 'widgets/aspect_ratio_wrapper.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +20,11 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
+      builder: (context, child) {
+        return AspectRatioWrapper(
+          child: child ?? const SizedBox(),
+        );
+      },
       home: const MainMenuScreen(),
       debugShowCheckedModeBanner: false,
     );
